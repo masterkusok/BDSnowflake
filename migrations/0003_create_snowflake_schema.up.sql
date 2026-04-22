@@ -1,9 +1,9 @@
-CREATE TABLE dim_pet_breed (
+CREATE TABLE IF NOT EXISTS dim_pet_breed (
     pet_breed_id SERIAL PRIMARY KEY,
     breed_name   VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE dim_customer (
+CREATE TABLE IF NOT EXISTS dim_customer (
     customer_id    INTEGER PRIMARY KEY,
     first_name     VARCHAR(100),
     last_name      VARCHAR(100),
@@ -16,7 +16,7 @@ CREATE TABLE dim_customer (
     pet_breed_id   INTEGER REFERENCES dim_pet_breed(pet_breed_id)
 );
 
-CREATE TABLE dim_seller (
+CREATE TABLE IF NOT EXISTS dim_seller (
     seller_id   SERIAL PRIMARY KEY,
     first_name  VARCHAR(100),
     last_name   VARCHAR(100),
@@ -25,7 +25,7 @@ CREATE TABLE dim_seller (
     postal_code VARCHAR(50)
 );
 
-CREATE TABLE dim_supplier (
+CREATE TABLE IF NOT EXISTS dim_supplier (
     supplier_id SERIAL PRIMARY KEY,
     name        VARCHAR(200),
     contact     VARCHAR(200),
@@ -36,7 +36,7 @@ CREATE TABLE dim_supplier (
     country     VARCHAR(100)
 );
 
-CREATE TABLE dim_store (
+CREATE TABLE IF NOT EXISTS dim_store (
     store_id    SERIAL PRIMARY KEY,
     name        VARCHAR(200),
     address     VARCHAR(200),
@@ -47,12 +47,12 @@ CREATE TABLE dim_store (
     email       VARCHAR(200)
 );
 
-CREATE TABLE dim_pet_category (
+CREATE TABLE IF NOT EXISTS dim_pet_category (
     pet_category_id SERIAL PRIMARY KEY,
     category_name   VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE dim_product (
+CREATE TABLE IF NOT EXISTS dim_product (
     product_id          INTEGER PRIMARY KEY,
     name                VARCHAR(200),
     category            VARCHAR(100),
@@ -71,7 +71,7 @@ CREATE TABLE dim_product (
     pet_category_id     INTEGER REFERENCES dim_pet_category(pet_category_id)
 );
 
-CREATE TABLE dim_date (
+CREATE TABLE IF NOT EXISTS dim_date (
     date_id     INTEGER PRIMARY KEY,
     full_date   DATE NOT NULL UNIQUE,
     day         INTEGER,
@@ -80,7 +80,7 @@ CREATE TABLE dim_date (
     quarter     INTEGER
 );
 
-CREATE TABLE fact_sales (
+CREATE TABLE IF NOT EXISTS fact_sales (
     sale_id         SERIAL PRIMARY KEY,
     customer_id     INTEGER REFERENCES dim_customer(customer_id),
     seller_id       INTEGER REFERENCES dim_seller(seller_id),

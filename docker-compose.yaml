@@ -1,10 +1,12 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16
     container_name: postgres-db
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d testdb" ]
+      interval: 2s
+      retries: 10
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -13,6 +15,24 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./source-data:/source-data
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./source-data:/source-data
+      - ./migrations:/migrations
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://admin:admin@postgres:5432/testdb?sslmode=disable",
+        "up",
+      ]
 
 volumes:
   postgres_data:
