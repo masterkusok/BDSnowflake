@@ -1,8 +1,7 @@
 INSERT INTO dim_pet_breed (breed_name)
 SELECT DISTINCT customer_pet_breed
 FROM mock_data
-WHERE customer_pet_breed IS NOT NULL
-ON CONFLICT (breed_name) DO NOTHING;
+WHERE customer_pet_breed IS NOT NULL;
 
 INSERT INTO dim_customer (customer_id, first_name, last_name, age, email, country, postal_code, pet_type, pet_name, pet_breed_id)
 SELECT DISTINCT ON (sale_customer_id)
@@ -17,8 +16,7 @@ SELECT DISTINCT ON (sale_customer_id)
     customer_pet_name,
     b.pet_breed_id
 FROM mock_data m
-JOIN dim_pet_breed b ON b.breed_name = m.customer_pet_breed
-ON CONFLICT (customer_id) DO NOTHING;
+JOIN dim_pet_breed b ON b.breed_name = m.customer_pet_breed;
 
 INSERT INTO dim_seller (seller_id, first_name, last_name, email, country, postal_code)
 SELECT DISTINCT ON (sale_seller_id)
@@ -28,8 +26,7 @@ SELECT DISTINCT ON (sale_seller_id)
     seller_email,
     seller_country,
     seller_postal_code
-FROM mock_data
-ON CONFLICT (seller_id) DO NOTHING;
+FROM mock_data;
 
 INSERT INTO dim_supplier (name, contact, email, phone, address, city, country)
 SELECT DISTINCT
@@ -41,8 +38,7 @@ SELECT DISTINCT
     supplier_city,
     supplier_country
 FROM mock_data
-WHERE supplier_name IS NOT NULL
-ON CONFLICT DO NOTHING;
+WHERE supplier_name IS NOT NULL;
 
 INSERT INTO dim_store (name, address, city, state, country, phone, email)
 SELECT DISTINCT
@@ -54,14 +50,12 @@ SELECT DISTINCT
     store_phone,
     store_email
 FROM mock_data
-WHERE store_name IS NOT NULL
-ON CONFLICT DO NOTHING;
+WHERE store_name IS NOT NULL;
 
 INSERT INTO dim_pet_category (category_name)
 SELECT DISTINCT pet_category
 FROM mock_data
-WHERE pet_category IS NOT NULL
-ON CONFLICT (category_name) DO NOTHING;
+WHERE pet_category IS NOT NULL;
 
 INSERT INTO dim_product (product_id, name, category, price, quantity, weight, color, size, brand, material, description, rating, reviews, release_date, expiry_date, pet_category_id)
 SELECT DISTINCT ON (sale_product_id)
@@ -82,8 +76,7 @@ SELECT DISTINCT ON (sale_product_id)
     product_expiry_date,
     pc.pet_category_id
 FROM mock_data m
-JOIN dim_pet_category pc ON pc.category_name = m.pet_category
-ON CONFLICT (product_id) DO NOTHING;
+JOIN dim_pet_category pc ON pc.category_name = m.pet_category;
 
 INSERT INTO dim_date (date_id, full_date, day, month, year, quarter)
 SELECT DISTINCT
@@ -94,8 +87,7 @@ SELECT DISTINCT
     EXTRACT(YEAR    FROM sale_date)::INTEGER,
     EXTRACT(QUARTER FROM sale_date)::INTEGER
 FROM mock_data
-WHERE sale_date IS NOT NULL
-ON CONFLICT (date_id) DO NOTHING;
+WHERE sale_date IS NOT NULL;
 
 INSERT INTO fact_sales (customer_id, seller_id, product_id, store_id, supplier_id, date_id, sale_quantity, sale_total_price)
 SELECT
@@ -108,16 +100,11 @@ SELECT
     m.sale_quantity,
     m.sale_total_price
 FROM mock_data m
-JOIN LATERAL (
-    SELECT store_id FROM dim_store
-    WHERE name = m.store_name
-      AND city = m.store_city
-      AND COALESCE(state, '') = COALESCE(m.store_state, '')
-    LIMIT 1
-) s ON true
-JOIN LATERAL (
-    SELECT supplier_id FROM dim_supplier
-    WHERE name = m.supplier_name
-      AND contact = m.supplier_contact
-    LIMIT 1
-) sup ON true;
+JOIN dim_store s
+    ON s.name = m.store_name
+    AND s.city = m.store_city
+    AND COALESCE(s.state, '') = COALESCE(m.store_state, '')
+JOIN dim_supplier sup
+    ON sup.name = m.supplier_name
+    AND sup.contact = m.supplier_contact;
+
